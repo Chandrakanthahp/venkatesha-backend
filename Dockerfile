@@ -1,7 +1,7 @@
 # ===============================
 # Build stage
 # ===============================
-FROM openjdk:17-jdk-slim AS build
+FROM eclipse-temurin:17-jdk-jammy AS build
 
 WORKDIR /app
 
@@ -15,7 +15,7 @@ RUN ./mvnw clean package -DskipTests
 # ===============================
 # Run stage
 # ===============================
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jdk-jammy
 
 WORKDIR /app
 
