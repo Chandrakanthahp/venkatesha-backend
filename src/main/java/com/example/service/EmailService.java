@@ -18,34 +18,67 @@ public class EmailService {
     @Value("${BREVO_API_KEY}")
     private String apiKey;
 
-    private static final String BREVO_URL = "https://api.brevo.com/v3/smtp/email";
+    private static final String BREVO_URL =
+            "https://api.brevo.com/v3/smtp/email";
 
-    public void sendRegistrationMail(String toEmail, String name, PatientsDTO dto) {
+    public void sendRegistrationMail(String toEmail,
+                                     String name,
+                                     PatientsDTO dto) {
+
         try {
             HttpURLConnection conn =
-                (HttpURLConnection) new URL(BREVO_URL).openConnection();
+                    (HttpURLConnection) new URL(BREVO_URL).openConnection();
 
             conn.setRequestMethod("POST");
-            conn.setRequestProperty("accept", "application/json");
+            conn.setRequestProperty("Accept", "application/json");
+            conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
             conn.setRequestProperty("api-key", apiKey);
-            conn.setRequestProperty("content-type", "application/json");
             conn.setDoOutput(true);
 
+            //SECOND EMAIL IS HARD-CODED HERE
             String body = """
             {
-              "sender": {"name":"Venkatesha Clinic","email":"venkateshaclinic@gmail.com"},
-              "to":[{"email":"%s","name":"%s"}],
-              "subject":"Appointment Registered Successfully",
-              "htmlContent":"<p>Hello %s,<br>DOB : %s <br>Your appointment is registered successfully.</p>"
+              "sender": {
+                "name": "Venkatesha Clinic",
+                "email": "venkateshaclinic@gmail.com"
+              },
+              "to": [
+                {
+                  "email": "%s",
+                  "name": "%s"
+                },
+                {
+                  "email": "chandrakantha628@gmail.com",
+                  "name": "Clinic Admin"
+                }
+              ],
+              "subject": "Appointment Registered Successfully",
+              "htmlContent": "<p>Hello %s,<br>DOB : %s<br>Your appointment is registered successfully.</p>"
             }
-            """.formatted(toEmail, name, name, dto.getBirthDate().toString());
+            """.formatted(
+                    toEmail,
+                    name,
+                    name,
+                    dto.getBirthDate()
+            );
 
-            conn.getOutputStream().write(body.getBytes());
+            conn.getOutputStream().write(body.getBytes("UTF-8"));
 
-            conn.getInputStream(); // triggers request
+            int status = conn.getResponseCode();
+
+            if (status >= 200 && status < 300) {
+                System.out.println("Email sent to patient + admin");
+            } else {
+                System.err.println("Email failed. HTTP " + status);
+                System.err.println(
+                        new String(conn.getErrorStream().readAllBytes())
+                );
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 }
+
 
